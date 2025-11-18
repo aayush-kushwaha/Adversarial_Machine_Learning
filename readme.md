@@ -1,8 +1,3 @@
-Here is a **clean, professional, GitHub-style `README.md`** explaining exactly what changed from your original code, **why**, and **what problems the fixes solved**.
-
-You can paste this directly in your project repo.
-
----
 
 # 📘 Adversarial Attacks on CIFAR-10 — Code Improvements & Fix Summary
 
