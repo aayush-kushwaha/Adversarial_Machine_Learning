@@ -1,5 +1,5 @@
 
-# 📘 Adversarial Attacks on CIFAR-10 — Code Improvements & Fix Summary
+# 📘 Adversarial Attacks on CIFAR-10  [Code Improvements & Fix Summary]
 
 This document explains **all modifications** made to the original FGSM + PGD adversarial attack notebook.
 The goal is to provide a clear, technical, and developer-friendly summary suitable for team members, instructors, and documentation.
