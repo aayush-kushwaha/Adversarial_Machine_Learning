@@ -51,16 +51,17 @@ if load_button:
 
 if st.session_state["current_img"] is not None:
     original_pil = to_pil(st.session_state["current_img"])
-    st.image(original_pil, caption=f"True label: {st.session_state['current_label']}", use_column_width=True)
+    st.image(original_pil, caption=f"True label: {st.session_state['current_label']}", use_container_width=True)
 else:
     st.info("Load a CIFAR-10 test image to begin.")
 
 attack_type = st.selectbox("Attack", ["fgsm", "pgd"], index=0)
-epsilon = st.slider("Epsilon", 0.0, 0.5, 0.1, 0.01)
+epsilon = st.selectbox("Epsilon (Attack Strength)", [0.03, 0.1, 0.2], index=0)
 alpha = None
 iters = None
 if attack_type == "pgd":
-    alpha = st.slider("Alpha", 0.0, 0.5, 0.025, 0.005)
+    alpha = epsilon / 4
+    st.write(f"Alpha (epsilon / 4): {alpha:.4f}")
     iters = st.slider("Iterations", 1, 100, 20)
 
 if st.button("Run Attack"):
@@ -91,7 +92,7 @@ if st.button("Run Attack"):
             if attack_resp.ok:
                 data = attack_resp.json()
                 adv_image = decode_image(data["adversarial_image"])
-                st.image(adv_image, caption=f"Adversarial image ({attack_type.upper()})", use_column_width=True)
+                st.image(adv_image, caption=f"Adversarial image ({attack_type.upper()})", use_container_width=True)
                 st.write(f"Original class: {data['original_class']}")
                 st.write(f"Adversarial class: {data['adversarial_class']}")
             else:
