@@ -191,7 +191,7 @@ GPU is recommended for faster PGD iteration performance.
 * **Sahil Khandu Thorat**
 
 MS Computer Science – University of Alabama at Birmingham  
-Course: **CS 685/785 – Adversarial Machine Learning Project**
+Course: **CS 685 – Adversarial Machine Learning Project**
 
 ---
 
