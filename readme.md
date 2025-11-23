@@ -165,8 +165,8 @@ All dependencies are listed in `requirements.txt`.
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/yourrepo.git
-cd yourrepo
+git clone https://github.com/aayush-kushwaha/Adversarial_Machine_Learning.git
+cd Adversarial_Machine_Learning
 ```
 
 ### 2. Install dependencies
