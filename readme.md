@@ -1,175 +1,218 @@
+# 📘 Adversarial Machine Learning: FGSM & PGD Attacks on CIFAR-10
 
-# 📘 Adversarial Attacks on CIFAR-10  [Code Improvements & Fix Summary]
+This project demonstrates how **adversarial attacks** can drastically degrade the performance of a Convolutional Neural Network (CNN) trained on the **CIFAR-10** dataset.
+Two major white-box attacks are implemented:
 
-This document explains **all modifications** made to the original FGSM + PGD adversarial attack notebook.
-The goal is to provide a clear, technical, and developer-friendly summary suitable for team members, instructors, and documentation.
+* **Fast Gradient Sign Method (FGSM)**
+* **Projected Gradient Descent (PGD)**
 
----
-
-## 🔧 Overview
-
-The original notebook implemented:
-
-* CIFAR-10 loading
-* A simple CNN training loop
-* FGSM and PGD adversarial attacks
-* Evaluation of accuracy & attack success
-
-While functional, it had multiple limitations and runtime issues.
-This README outlines **what was changed**, **why it was necessary**, and **how the fixes improve reliability and analysis quality**.
+The project evaluates model robustness across different perturbation strengths, computes Attack Success Rates (ASR), and visualizes adversarial examples vs. clean images.
 
 ---
 
-## 🚀 Key Improvements
-
-### 1. **Multi-Epsilon FGSM & PGD Attacks**
-
-**Original behavior:**
-
-```python
-epsilon = 0.03
+## 🚀 Project Structure
+```
+📁 Adversarial_Attack_Project/
+│── adversarial_project.ipynb
+│── README.md
+│── requirements.txt
+│── /data
+│── /images   (optional – saved visualization outputs)
 ```
 
-Only a single attack strength was supported.
+---
 
-**Issue:**
-A proper adversarial robustness analysis requires **multiple epsilons** to evaluate how accuracy changes as perturbations increase.
+## 🧠 1. Overview
 
-**Fix:**
+This project:
 
-```python
-epsilons = [0.03, 0.1, 0.2]
-```
-
-FGSM and PGD attacks now run for *all* epsilon values, and results are stored for comparison.
-
-**Benefit:**
-
-* Enables weak, medium, and strong attack evaluation
-* Produces more meaningful ASR curves
-* Matches academic/industry evaluation standards
+* Trains a custom **SimpleCNN** on CIFAR-10
+* Achieves **83.92% clean test accuracy**
+* Generates adversarial examples using FGSM and PGD
+* Computes **Adversarial Accuracy** and **Attack Success Rate (ASR)**
+* Evaluates attacks across multiple ε values and PGD iteration counts
+* Includes visualizations such as:
+  * Clean vs. FGSM vs. PGD
+  * 10-image grids
+  * Perturbation heatmaps
+  * 3-row combined layouts
 
 ---
 
-### 2. **Robust Visualization System**
+## 📦 2. Dataset
 
-The original visualization crashed due to:
+**CIFAR-10** contains:
 
-* using `.numpy()` on tensors that required gradients
-* incorrect tensor shapes
-* trying to index more images than provided
+* 60,000 images
+* 32×32 RGB
+* 10 classes (airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck)
 
-**Fixes added:**
+Training transformations:
 
-#### ✔ Automatic `.detach()` and `.cpu()`
-
-Guarantees tensors are safe for plotting:
-
-```python
-tensor.detach().cpu().permute(1,2,0)
-```
-
-#### ✔ Perturbation Heatmap
-
-Shows magnitude of adversarial noise:
-
-```python
-diff = (adversarial - original).abs() * scale
-```
-
-#### ✔ 10-Image Side-by-Side Grid
-
-Displays multiple original vs adversarial samples.
-
-**Benefits:**
-
-* No more runtime errors
-* High-quality visual explanations for reports
-* Enables clearer understanding of model vulnerabilities
+* Random crop
+* Random horizontal flip
+* Standard CIFAR normalization
 
 ---
 
-### 3. **Device-Safe Evaluation (Fix for GPU/CPU Mismatch)**
+## 🏗️ 3. Model Architecture
 
-**Original error:**
+The **SimpleCNN** consists of:
 
+* Three convolution blocks: `Conv → ReLU → MaxPool`
+* Flatten layer
+* Two fully connected layers
+
+This lightweight architecture keeps training fast while still being expressive enough for adversarial research.
+
+---
+
+## 🎯 4. Training Results
+
+The model was trained for **40 epochs** with SGD + Momentum + Weight Decay.
+
+### Final Clean Test Accuracy:
 ```
-RuntimeError: Input type (torch.FloatTensor) and weight type (torch.cuda.FloatTensor)
+83.92%
 ```
 
-**Cause:**
+This is the baseline accuracy before applying FGSM and PGD attacks.
 
-* Model was on **GPU**
-* Adversarial images were accidentally kept on **CPU**
-* PyTorch never auto-moves tensors → mismatch
+---
 
-**Fix:**
-Inside `evaluate_attack()`:
+## ⚡ 5. FGSM Attack
 
-```python
-adv_batch = adv_images[j:j+len(images)].to(device)
-adv_pred = model(adv_batch).argmax(1)
+FGSM perturbs the input using:
+```
+x_adv = x + ε * sign(∇x Loss)
 ```
 
-**Benefit:**
+### FGSM Result (ε = 0.05):
+```
+Clean accuracy: 83.91%
+Adversarial accuracy: 33.17%
+ASR: 66.83%
+```
 
-* Works on **GPU** and **CPU** automatically
-* Eliminates device mismatch crashes
-* Makes evaluation fully stable
+### Effect of Epsilon (ε):
 
----
+| ε    | Adv Accuracy | ASR    |
+|------|--------------|--------|
+| 0.00 | 83.89%       | 16.11% |
+| 0.01 | 72.09%       | 27.91% |
+| 0.03 | 49.00%       | 51.00% |
+| 0.05 | 33.17%       | 66.83% |
+| 0.10 | 12.14%       | 87.86% |
 
-### 4. **Structured & Clean Attack Pipeline**
-
-The notebook was reorganized for clarity:
-
-* Attack generation separated from visualization
-* FGSM/PGD results stored in structured dictionaries:
-
-  ```python
-  fgsm_results[eps] = adv_images
-  ```
-* Visualization placed at the end
-* Added “experiment-ready” output blocks
-
-**Benefit:**
-The notebook now resembles a proper adversarial machine learning experiment paper:
-
-* Training
-* Multi-epsilon FGSM
-* Multi-epsilon PGD
-* Evaluation
-* Visualization
-* Heatmaps
-* Comparison grid
+**Observation:**
+Increasing ε rapidly reduces model accuracy and increases the attack success rate.
 
 ---
 
-## 🛠 Summary of All Fixes
+## 🔥 6. PGD Attack
 
-| Category              | Issue in Original             | Fix Applied                           | Result                          |
-| --------------------- | ----------------------------- | ------------------------------------- | ------------------------------- |
-| **FGSM/PGD attacks**  | Only one epsilon              | Added multi-epsilon loops             | Full robustness analysis        |
-| **Visualization**     | Shape errors, grad errors     | Added `.detach()`, heatmap, grid view | Reliable and clear plots        |
-| **Device handling**   | GPU/CPU mismatch              | Added `.to(device)` for adv images    | Device-safe evaluation          |
-| **Code organization** | Mixed logic, limited analysis | Structured & modular pipeline         | Clean, reproducible notebook    |
-| **Interpretability**  | Noise not visible             | Added perturbation heatmap            | Better understanding of attacks |
+PGD applies iterative FGSM-like steps with projection back into the ε-ball.
+
+### PGD Result (ε = 0.05, 10 steps):
+```
+Adversarial accuracy: 18.75%
+ASR: 81.25%
+```
+
+### Effect of PGD Steps (ε = 0.05):
+
+| Steps | Adv Accuracy | ASR    |
+|-------|--------------|--------|
+| 5     | 23.22%       | 76.78% |
+| 10    | 18.75%       | 81.25% |
+| 20    | 17.70%       | 82.30% |
+| 40    | 17.45%       | 82.55% |
+
+**Observation:**
+More steps produce stronger attacks, with diminishing returns after ~20 iterations.
+
+---
+
+## 🖼️ 7. Visualizations
+
+The notebook includes:
+
+* **Clean vs FGSM vs PGD** comparisons
+* **10-image side-by-side grids**
+* **Perturbation heatmaps**
+* **3-row combined layouts** (Clean → FGSM → PGD)
+
+**Key Insight:**
+Adversarial images look almost identical to clean images, yet predictions change significantly — showing how vulnerable CNNs can be.
 
 ---
 
-## 📈 Final Result
+## 🔧 8. Requirements
 
-After applying all improvements, the notebook:
+Dependencies used in this project:
+```
+torch
+torchvision
+numpy
+matplotlib
+```
 
-* Trains a CNN
-* Generates FGSM & PGD attacks at multiple strengths
-* Evaluates Clean Accuracy, Adversarial Accuracy, ASR
-* Visualizes:
-
-  * original vs adversarial images
-  * perturbation heatmaps
-  * 10-image attack comparison grid
-* Works on GPU and CPU without modification
-* Produces research-quality analysis
+All dependencies are listed in `requirements.txt`.
 
 ---
+
+## ▶️ 9. How to Run
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/yourusername/yourrepo.git
+cd yourrepo
+```
+
+### 2. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Run the notebook
+```bash
+jupyter notebook adversarial_project.ipynb
+```
+
+GPU is recommended for faster PGD iteration performance.
+
+---
+
+## 🙌 10. Contributors
+
+* **Aayush Kushwaha**
+* **Harsh Deshmukh**
+* **Balaka Biswas**
+* **Sahil Khandu Thorat**
+
+MS Computer Science – University of Alabama at Birmingham  
+Course: **CS 685/785 – Adversarial Machine Learning Project**
+
+---
+
+## 🏁 11. Summary
+
+This project demonstrates:
+
+* CNNs achieve strong performance on clean CIFAR-10 images
+* FGSM and PGD perturbations drastically reduce accuracy even with minimal noise
+* PGD outperforms FGSM at the same epsilon
+* Larger ε or more PGD steps increase attack success
+* Adversarial robustness remains a critical challenge in deep learning systems
+
+---
+
+## 📄 License
+
+This project is open-source and available under the MIT License.
+
+---
+
+## 📧 Contact
+
+For questions or collaboration, feel free to reach out to any of the contributors listed above.
