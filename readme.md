@@ -186,8 +186,8 @@ GPU is recommended for faster PGD iteration performance.
 ## 🙌 10. Contributors
 
 * **Aayush Kushwaha**
+* **Balaka Biswas**  
 * **Harsh Deshmukh**
-* **Balaka Biswas**
 * **Sahil Khandu Thorat**
 
 MS Computer Science – University of Alabama at Birmingham  
